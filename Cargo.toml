@@ -5,6 +5,16 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+name = "config-manager-server"
+path = "src/server.rs"
+
 [dependencies]
 rocket = { version = "0.5.0-rc.2", features = ["json"] }
 serde_json = "1.0.1"
+tokio = { version = "1.21.2", features = ["macros", "rt-multi-thread"] }
+tonic = "0.8.2"
+prost = "0.11.0"
+
+[build-dependencies]
+tonic-build = "0.8.2"

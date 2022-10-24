@@ -28,7 +28,7 @@ pub async fn create_config<'a>(input_config: Json<Config>) -> Json<&'a str> {
 }
 
 #[delete]
-pub async fn delete_config()
+pub async fn delete_config();
 
 #[catch(404)]
 pub fn not_found(req: &Request) -> String {
