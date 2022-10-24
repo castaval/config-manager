@@ -1,8 +1,11 @@
 use tonic::{transport::Server, Request, Response, Status};
 
-
 use config_manager::config_manager_server::{ConfigManagerServer, ConfigManager};
-use config_manager::{Config, ConfigRequestVersion, Empty, ConfigList, ConfigRequestPath};
+use config_manager::{Config, ConfigRequestVersion, Empty, ConfigList, ConfigRequestPath, ResponseReply};
+
+use file_manager::FileManager;
+
+mod file_manager;
 
 pub mod config_manager {
     tonic::include_proto!("configmanager");
@@ -16,9 +19,8 @@ impl ConfigManager for Manager {
     async fn create(
         &self,
         request: Request<Config>,
-    ) -> Result<Response<Config>, Status> {
+    ) -> Result<Response<ResponseReply>, Status> {
         println!("Got a create request {:?}", request);
-
 
         let config = config_manager::Config {
             version: request.get_ref().version.clone(),
@@ -27,7 +29,13 @@ impl ConfigManager for Manager {
             used: request.get_ref().used.clone(),
         };
 
-        Ok(Response::new(config))
+        FileManager::create_config(&config).await?;
+
+        let response = config_manager::ResponseReply {
+            status: String::from("Success"),
+        };
+
+        Ok(Response::new(response))
     }
 
     async fn get(

@@ -10,11 +10,14 @@ name = "config-manager-server"
 path = "src/server.rs"
 
 [dependencies]
-rocket = { version = "0.5.0-rc.2", features = ["json"] }
 serde_json = "1.0.1"
+serde = { version =  "1.0.147", features = ["derive"] }
 tokio = { version = "1.21.2", features = ["macros", "rt-multi-thread"] }
+tokio-serde = "0.8"
 tonic = "0.8.2"
 prost = "0.11.0"
 
 [build-dependencies]
 tonic-build = "0.8.2"
+prost-build = "0.11.0"
+prost-serde = "0.3.0"

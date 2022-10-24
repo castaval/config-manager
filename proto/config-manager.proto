@@ -2,7 +2,7 @@ syntax = "proto3";
 package configmanager;
 
 service ConfigManager {
-    rpc Create(Config) returns (Config) {}
+    rpc Create(Config) returns (ResponseReply) {}
     rpc Get(ConfigRequestVersion) returns (Config) {}
     rpc GetAll(Empty) returns (ConfigList) {}
     rpc Update(Config) returns (Config) {}
@@ -34,4 +34,8 @@ message ConfigRequestPath {
 
 message ConfigRequestVersion {
     string version = 1;
+}
+
+message ResponseReply {
+    string status = 1;
 }
