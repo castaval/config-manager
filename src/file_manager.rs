@@ -4,7 +4,7 @@ use std::io::{BufWriter, BufReader};
 use std::path::{PathBuf};
 // use tokio::{fs, io::BufWriter};
 use tonic::Status;
-use serde_json;
+use serde_json::{self, error};
 
 use crate::config_manager::{Config, ConfigRequest, Empty, ConfigList};
 
@@ -44,21 +44,46 @@ impl FileManager {
             return Err(Box::new(Status::not_found("config not found")));
         }
 
-        let mut get_config = Config::default();
+        let config = get_last_config(&dir_path)?;
 
-        for config in fs::read_dir(config_path)? {
-            let config = config?;
+        Ok(config)
+    }
 
-            let file = File::open(config.path())?;
-            let reader = BufReader::new(file);
+    pub async fn get_all_configs() -> Result<ConfigList, Box<dyn Error>> {
+        let mut config_path = PathBuf::new();
+        config_path.push("configs");
 
-            let json_config: Config = serde_json::from_reader(reader)?;
+        let mut config_list = Vec::new();
 
-            if json_config.version > get_config.version {
-                get_config = json_config;
-            } 
+        for dir in fs::read_dir(config_path)? {
+            let dir = dir?;
+            
+            let config = dir.path();
+
+            if let Some(path) = config.to_str() {
+                config_list.push(get_last_config(path)?);
+            }
         }
 
-        Ok(get_config)
+        Ok(ConfigList { configs: config_list })
     }
+}
+
+fn get_last_config(name: &str) -> Result<Config, Box<dyn Error>> {
+    let mut get_config = Config::default();
+
+    for config in fs::read_dir(name)? {
+        let config = config?;
+
+        let file = File::open(config.path())?;
+        let reader = BufReader::new(file);
+
+        let json_config: Config = serde_json::from_reader(reader)?;
+
+        if json_config.version > get_config.version {
+            get_config = json_config;
+        } 
+    }
+
+    Ok(get_config)
 }

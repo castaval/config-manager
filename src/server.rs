@@ -69,7 +69,16 @@ impl ConfigManager for Manager {
         &self,
         request: Request<Empty>,
     ) -> Result<Response<ConfigList>, Status> {
-        unimplemented!()
+        println!("Got a get all request {:?}", request);
+
+        let configs = match FileManager::get_all_configs().await {
+            Ok(configs) => configs,
+            Err(e) => return Err(Status::not_found(format!("{}", e))),
+        };
+
+        let response = configs;
+
+        Ok(Response::new(response))
     }
 
     async fn update(
