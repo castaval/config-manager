@@ -3,11 +3,11 @@ package configmanager;
 
 service ConfigManager {
     rpc Create(Config) returns (ResponseReply) {}
-    rpc Get(ConfigRequestVersion) returns (Config) {}
+    rpc Get(ConfigRequest) returns (Config) {}
     rpc GetAll(Empty) returns (ConfigList) {}
     rpc Update(Config) returns (Config) {}
-    rpc Delete(ConfigRequestPath) returns (Empty) {}
-    rpc DeleteVersion(ConfigRequestVersion) returns (Empty) {}
+    rpc Delete(ConfigRequest) returns (Empty) {}
+    rpc DeleteVersion(ConfigRequest) returns (Empty) {}
 }
 
 message Empty {}
@@ -28,12 +28,13 @@ message Pair {
     string value = 2;
 }
 
-message ConfigRequestPath {
-    string path = 1;
+message ConfigRequest {
+    string name = 1;
 }
 
 message ConfigRequestVersion {
-    string version = 1;
+    string name = 1;
+    uint32 version = 2;
 }
 
 message ResponseReply {
