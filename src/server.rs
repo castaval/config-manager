@@ -55,12 +55,7 @@ impl ConfigManager for Manager {
             Err(e) => return Err(Status::not_found(format!("{}", e))),
         };
 
-        let response = config_manager::Config {
-            version: config.version,
-            name: config.name,
-            data: config.data,
-            used: config.used,
-        };
+        let response = config;
 
         Ok(Response::new(response))
     }
