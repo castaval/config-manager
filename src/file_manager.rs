@@ -3,7 +3,7 @@ use std::fs::{self, File};
 use std::io::{BufWriter, BufReader};
 use std::path::{PathBuf};
 // use tokio::{fs, io::BufWriter};
-use tonic::Status;
+use tonic::{Status, Response};
 use serde_json::{self, error};
 
 use crate::config_manager::{Config, ConfigRequest, Empty, ConfigList};
@@ -66,6 +66,20 @@ impl FileManager {
         }
 
         Ok(ConfigList { configs: config_list })
+    }
+
+    pub async fn delete_config(name: &str) -> Result<(), Box<dyn Error>> {
+        let dir_path = format!("configs/{}", name);
+        let mut config_path = PathBuf::new();
+        config_path.push(&dir_path);
+
+        if !config_path.exists() {
+            return Err(Box::new(Status::not_found("config not exist")));
+        }
+
+        fs::remove_dir_all(config_path)?;
+
+        Ok(())
     }
 }
 

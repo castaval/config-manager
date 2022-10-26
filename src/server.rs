@@ -86,14 +86,25 @@ impl ConfigManager for Manager {
     async fn delete(
         &self,
         request: Request<ConfigRequest>,
-    ) -> Result<Response<Empty>, Status> {
-        unimplemented!()
+    ) -> Result<Response<ResponseReply>, Status> {
+        println!("Got a delete request {:?}", request);
+
+        match FileManager::delete_config(&request.get_ref().name).await {
+            Ok(_) => (),
+            Err(e) => return Err(Status::not_found(format!("{}", e))),
+        };
+
+        let response = config_manager::ResponseReply {
+            status: String::from("Config was deleted"),
+        };
+
+        Ok(Response::new(response))
     }
 
     async fn delete_version(
         &self,
         request: Request<ConfigRequest>,
-    ) -> Result<Response<Empty>, Status> {
+    ) -> Result<Response<ResponseReply>, Status> {
         unimplemented!()
     }
 }
