@@ -70,6 +70,35 @@ impl FileManager {
         Ok(ConfigList { configs: config_list })
     }
 
+    pub async fn update_config(new_config: &mut Config) -> Result<(), Box<dyn Error>> {
+        let file_name = format!("{}_{}.json", new_config.name, new_config.version);
+        let dir_path = format!("configs/{}", &new_config.name);
+        let mut config_path = PathBuf::new();
+        config_path.push(&dir_path);
+
+        if !config_path.exists() {
+            return Err(Box::new(Status::not_found("config not found")));
+        }
+
+        config_path.push(&file_name);
+
+        let mut old_config = get_last_config(&dir_path)?;
+        old_config.data.append(&mut new_config.data);
+
+        let updated_config = Config {
+            version: old_config.version + 1,
+            name: old_config.name,
+            data: old_config.data,
+            used: false,
+        };
+
+        let file = fs::File::create(&config_path)?;
+        let mut writer = BufWriter::new(file);
+        serde_json::to_writer_pretty(&mut writer, &updated_config)?;
+
+        Ok(())
+    }
+
     pub async fn delete_config(name: &str) -> Result<(), Box<dyn Error>> {
         let dir_path = format!("configs/{}", name);
         let mut config_path = PathBuf::new();
@@ -107,10 +136,10 @@ impl FileManager {
     }
 }
 
-fn get_last_config(name: &str) -> Result<Config, Box<dyn Error>> {
+fn get_last_config(path: &str) -> Result<Config, Box<dyn Error>> {
     let mut get_config = Config::default();
 
-    for config in fs::read_dir(name)? {
+    for config in fs::read_dir(path)? {
         let config = config?;
 
         let file = File::open(config.path())?;

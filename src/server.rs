@@ -79,8 +79,21 @@ impl ConfigManager for Manager {
     async fn update(
         &self,
         request: Request<Config>,
-    ) -> Result<Response<Config>, Status> {
-        unimplemented!()
+    ) -> Result<Response<ResponseReply>, Status> {
+        let mut request = request; 
+
+        println!("Got a delete request {:?}", request);
+
+        match FileManager::update_config(request.get_mut()).await {
+            Ok(_) => (),
+            Err(e) => return Err(Status::cancelled(format!("{}", e))),
+        }
+
+        let response = config_manager::ResponseReply {
+            status: String::from("Config was updated"),
+        };
+
+        Ok(Response::new(response))
     }
 
     async fn delete(

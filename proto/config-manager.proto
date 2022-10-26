@@ -5,7 +5,7 @@ service ConfigManager {
     rpc Create(Config) returns (ResponseReply) {}
     rpc Get(ConfigRequest) returns (Config) {}
     rpc GetAll(Empty) returns (ConfigList) {}
-    rpc Update(Config) returns (Config) {}
+    rpc Update(Config) returns (ResponseReply) {}
     rpc Delete(ConfigRequest) returns (ResponseReply) {}
     rpc DeleteVersion(ConfigRequestVersion) returns (ResponseReply) {}
 }
