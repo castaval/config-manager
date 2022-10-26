@@ -8,14 +8,14 @@ use tonic::codegen::http::version;
 use tonic::{Status, Response};
 use serde_json::{self, error};
 
-use crate::config_manager::{Config, ConfigRequest, Empty, ConfigList};
+use crate::config_manager::{Config, ConfigList, ConfigInformation};
 
 pub struct FileManager {}
 
 impl FileManager {
     pub async fn create_config(config: &Config) -> Result<(), Box<dyn Error>>{
-        let file_name = format!("{}_{}.json", config.name, config.version);
-        let dir_path =  format!("configs/{}", config.name);
+        let file_name = format!("{}_{}.json", config.service, config.version);
+        let dir_path =  format!("configs/{}", config.service);
 
         let mut config_path = PathBuf::new();
         config_path.push(&dir_path);
@@ -63,16 +63,18 @@ impl FileManager {
             let config = dir.path();
 
             if let Some(path) = config.to_str() {
-                config_list.push(get_last_config(path)?);
+                let config = get_last_config(path)?;
+                let config_information = 
+                    ConfigInformation { service: config.service, data: config.data};
+                config_list.push(config_information);
             }
         }
 
         Ok(ConfigList { configs: config_list })
     }
 
-    pub async fn update_config(new_config: &mut Config) -> Result<(), Box<dyn Error>> {
-        let file_name = format!("{}_{}.json", new_config.name, new_config.version);
-        let dir_path = format!("configs/{}", &new_config.name);
+    pub async fn update_config(new_config: &mut ConfigInformation) -> Result<(), Box<dyn Error>> {
+        let dir_path = format!("configs/{}", &new_config.service);
         let mut config_path = PathBuf::new();
         config_path.push(&dir_path);
 
@@ -80,17 +82,18 @@ impl FileManager {
             return Err(Box::new(Status::not_found("config not found")));
         }
 
-        config_path.push(&file_name);
-
         let mut old_config = get_last_config(&dir_path)?;
-        old_config.data.append(&mut new_config.data);
+        old_config.data.extend(new_config.data.clone());
 
         let updated_config = Config {
             version: old_config.version + 1,
-            name: old_config.name,
+            service: old_config.service,
             data: old_config.data,
             used: false,
         };
+
+        let file_name = format!("{}_{}.json", updated_config.service, updated_config.version);
+        config_path.push(&file_name);
 
         let file = fs::File::create(&config_path)?;
         let mut writer = BufWriter::new(file);

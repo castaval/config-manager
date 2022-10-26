@@ -1,10 +1,8 @@
 use std::error::Error;
-use std::fs::File;
-
 use tonic::{transport::Server, Request, Response, Status};
 
 use config_manager::config_manager_server::{ConfigManagerServer, ConfigManager};
-use config_manager::{Config, Empty, ConfigList, ConfigRequest, ResponseReply, ConfigRequestVersion};
+use config_manager::{Config, Empty, ConfigList, ResponseReply, ConfigInformation, RequestService, ResponseGet, RequestServiceVersion};
 
 use file_manager::FileManager;
 
@@ -21,15 +19,15 @@ pub struct Manager {}
 impl ConfigManager for Manager {
     async fn create(
         &self,
-        request: Request<Config>,
+        request: Request<ConfigInformation>,
     ) -> Result<Response<ResponseReply>, Status> {
         println!("Got a create request {:?}", request);
 
         let config = config_manager::Config {
-            version: request.get_ref().version,
-            name: request.get_ref().name.clone(),
+            version: 1,
+            service: request.get_ref().service.clone(),
             data: request.get_ref().data.clone(),
-            used: request.get_ref().used.clone(),
+            used: false,
         };
 
         match FileManager::create_config(&config).await {
@@ -46,16 +44,16 @@ impl ConfigManager for Manager {
 
     async fn get(
          &self,
-         request: Request<ConfigRequest>,
-    ) -> Result<Response<Config>, Status> {
+         request: Request<RequestService>,
+    ) -> Result<Response<ResponseGet>, Status> {
         println!("Got a get request {:?}", request);
 
-        let config = match FileManager::get_config(&request.get_ref().name).await {
+        let config = match FileManager::get_config(&request.get_ref().service).await {
             Ok(config) => config,
             Err(e) => return Err(Status::not_found(format!("{}", e))),
         };
 
-        let response = config;
+        let response = ResponseGet { data: config.data };
 
         Ok(Response::new(response))
     }
@@ -78,7 +76,7 @@ impl ConfigManager for Manager {
 
     async fn update(
         &self,
-        request: Request<Config>,
+        request: Request<ConfigInformation>,
     ) -> Result<Response<ResponseReply>, Status> {
         let mut request = request; 
 
@@ -98,11 +96,11 @@ impl ConfigManager for Manager {
 
     async fn delete(
         &self,
-        request: Request<ConfigRequest>,
+        request: Request<RequestService>,
     ) -> Result<Response<ResponseReply>, Status> {
         println!("Got a delete request {:?}", request);
 
-        match FileManager::delete_config(&request.get_ref().name).await {
+        match FileManager::delete_config(&request.get_ref().service).await {
             Ok(_) => (),
             Err(e) => return Err(Status::not_found(format!("{}", e))),
         };
@@ -116,11 +114,11 @@ impl ConfigManager for Manager {
 
     async fn delete_version(
         &self,
-        request: Request<ConfigRequestVersion>,
+        request: Request<RequestServiceVersion>,
     ) -> Result<Response<ResponseReply>, Status> {
         println!("Got ad delete version request {:?}", request);
 
-        match FileManager::delete_config_version(&request.get_ref().name, request.get_ref().version).await {
+        match FileManager::delete_config_version(&request.get_ref().service, request.get_ref().version).await {
             Ok(_) => (),
             Err(e) => return Err(Status::not_found(format!("{}", e))),
         }
