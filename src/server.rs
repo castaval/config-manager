@@ -4,7 +4,7 @@ use std::fs::File;
 use tonic::{transport::Server, Request, Response, Status};
 
 use config_manager::config_manager_server::{ConfigManagerServer, ConfigManager};
-use config_manager::{Config, Empty, ConfigList, ConfigRequest, ResponseReply};
+use config_manager::{Config, Empty, ConfigList, ConfigRequest, ResponseReply, ConfigRequestVersion};
 
 use file_manager::FileManager;
 
@@ -103,9 +103,20 @@ impl ConfigManager for Manager {
 
     async fn delete_version(
         &self,
-        request: Request<ConfigRequest>,
+        request: Request<ConfigRequestVersion>,
     ) -> Result<Response<ResponseReply>, Status> {
-        unimplemented!()
+        println!("Got ad delete version request {:?}", request);
+
+        match FileManager::delete_config_version(&request.get_ref().name, request.get_ref().version).await {
+            Ok(_) => (),
+            Err(e) => return Err(Status::not_found(format!("{}", e))),
+        }
+
+        let response = config_manager::ResponseReply {
+            status: String::from("Config version was deleted"),
+        };
+
+        Ok(Response::new(response))
     }
 }
 

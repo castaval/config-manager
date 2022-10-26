@@ -2,6 +2,8 @@ use std::error::Error;
 use std::fs::{self, File};
 use std::io::{BufWriter, BufReader};
 use std::path::{PathBuf};
+use prost::bytes::Buf;
+use tonic::codegen::http::version;
 // use tokio::{fs, io::BufWriter};
 use tonic::{Status, Response};
 use serde_json::{self, error};
@@ -78,6 +80,28 @@ impl FileManager {
         }
 
         fs::remove_dir_all(config_path)?;
+
+        Ok(())
+    }
+
+    pub async fn delete_config_version(name: &str, version: u32) -> Result<(), Box<dyn Error>> {
+        let dir_path = format!("configs/{}", name);
+        let mut config_path = PathBuf::new();
+        config_path.push(&dir_path);
+
+        for conf in fs::read_dir(config_path)? {
+            let conf = conf?;
+
+            let file = File::open(conf.path())?;
+            let reader = BufReader::new(file);
+
+            let config: Config = serde_json::from_reader(reader)?;
+
+            if config.version == version {
+                fs::remove_file(conf.path())?;
+                break;
+            }
+        }
 
         Ok(())
     }
