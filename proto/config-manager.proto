@@ -8,6 +8,7 @@ service ConfigManager {
     rpc Update(ConfigInformation) returns (ResponseReply) {}
     rpc Delete(RequestService) returns (ResponseReply) {}
     rpc DeleteVersion(RequestServiceVersion) returns (ResponseReply) {}
+    rpc UseConfig(RequestServiceVersion) returns (ResponseReply) {}
 }
 
 message Empty {}

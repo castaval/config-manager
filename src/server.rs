@@ -78,7 +78,7 @@ impl ConfigManager for Manager {
         &self,
         request: Request<ConfigInformation>,
     ) -> Result<Response<ResponseReply>, Status> {
-        let mut request = request; 
+        let mut request = request;
 
         println!("Got a delete request {:?}", request);
 
@@ -125,6 +125,24 @@ impl ConfigManager for Manager {
 
         let response = config_manager::ResponseReply {
             status: String::from("Config version was deleted"),
+        };
+
+        Ok(Response::new(response))
+    }
+
+    async fn use_config(
+        &self,
+        request: Request<RequestServiceVersion>,
+    ) -> Result<Response<ResponseReply>, Status> {
+        println!("Got use request {:?}", request);
+
+        match FileManager::use_config_version(&request.get_ref().service, request.get_ref().version).await {
+            Ok(_) => (),
+            Err(e) => return Err(Status::not_found(format!("{}", e))),
+        }
+
+        let response = config_manager::ResponseReply {
+            status: String::from("Config was used")
         };
 
         Ok(Response::new(response))

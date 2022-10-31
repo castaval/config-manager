@@ -2,8 +2,6 @@ use std::error::Error;
 use std::fs::{self, File};
 use std::io::{BufWriter, BufReader};
 use std::path::{PathBuf};
-use prost::bytes::Buf;
-use tonic::codegen::http::version;
 // use tokio::{fs, io::BufWriter};
 use tonic::{Status, Response};
 use serde_json::{self, error};
@@ -59,12 +57,12 @@ impl FileManager {
 
         for dir in fs::read_dir(config_path)? {
             let dir = dir?;
-            
+
             let config = dir.path();
 
             if let Some(path) = config.to_str() {
                 let config = get_last_config(path)?;
-                let config_information = 
+                let config_information =
                     ConfigInformation { service: config.service, data: config.data};
                 config_list.push(config_information);
             }
@@ -83,6 +81,11 @@ impl FileManager {
         }
 
         let mut old_config = get_last_config(&dir_path)?;
+
+        if old_config.used {
+            return Err(Box::new(Status::aborted("This config is using")));
+        }
+
         old_config.data.extend(new_config.data.clone());
 
         let updated_config = Config {
@@ -130,8 +133,75 @@ impl FileManager {
             let config: Config = serde_json::from_reader(reader)?;
 
             if config.version == version {
+                if config.used {
+                    return Err(Box::new(Status::aborted("This config is using")));
+                }
+
                 fs::remove_file(conf.path())?;
                 break;
+            }
+        }
+
+        Ok(())
+    }
+
+    pub async fn use_config_version(name: &str, version: u32) -> Result<(), Box<dyn Error>> {
+        let dir_path = format!("configs/{}", name);
+        let mut config_path = PathBuf::new();
+        config_path.push(&dir_path);
+
+
+        for conf in fs::read_dir(&config_path)? {
+            let conf = conf?;
+
+            let file = File::open(conf.path())?;
+            let reader = BufReader::new(file);
+
+            let config: Config = serde_json::from_reader(reader)?;
+
+            if config.used {
+                let config_not_used = Config {
+                    service: config.service,
+                    version: config.version,
+                    data: config.data,
+                    used: false,
+                };
+
+                fs::remove_file(conf.path())?;
+
+                let conf_path = conf.path();
+
+                let file = fs::File::create(&conf_path)?;
+                let mut writer = BufWriter::new(file);
+                serde_json::to_writer_pretty(&mut writer, &config_not_used)?;
+
+                break;
+            }
+        }
+
+        for conf in fs::read_dir(&config_path)? {
+            let conf = conf?;
+
+            let file = File::open(conf.path())?;
+            let reader = BufReader::new(file);
+
+            let config: Config = serde_json::from_reader(reader)?;
+
+            if config.version == version {
+                let config_used = Config {
+                    service: config.service,
+                    version: config.version,
+                    data: config.data,
+                    used: true,
+                };
+
+                fs::remove_file(conf.path())?;
+
+                let conf_path = conf.path();
+
+                let file = fs::File::create(&conf_path)?;
+                let mut writer = BufWriter::new(file);
+                serde_json::to_writer_pretty(&mut writer, &config_used)?;
             }
         }
 
@@ -152,7 +222,7 @@ fn get_last_config(path: &str) -> Result<Config, Box<dyn Error>> {
 
         if json_config.version > get_config.version {
             get_config = json_config;
-        } 
+        }
     }
 
     Ok(get_config)
