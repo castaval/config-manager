@@ -110,6 +110,19 @@ impl FileManager {
         let mut config_path = PathBuf::new();
         config_path.push(&dir_path);
 
+        for conf in fs::read_dir(&config_path)? {
+            let conf = conf?;
+
+            let file = File::open(conf.path())?;
+            let reader = BufReader::new(file);
+
+            let config: Config = serde_json::from_reader(reader)?;
+
+            if config.used {
+                return Err(Box::new(Status::aborted("This config is using")));
+            }
+        }
+
         if !config_path.exists() {
             return Err(Box::new(Status::not_found("config not exist")));
         }
