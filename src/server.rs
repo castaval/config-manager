@@ -1,5 +1,6 @@
 use std::error::Error;
 use tonic::{transport::Server, Request, Response, Status};
+use std::fs;
 
 use crate::config_manager::config_manager_server::{ConfigManagerServer, ConfigManager};
 use crate::config_manager::{Empty, ConfigList, ResponseReply, ConfigInformation, RequestService, ResponseGet, RequestServiceVersion};
@@ -167,6 +168,13 @@ impl ConfigManager for Manager {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+    let dir = fs::create_dir("configs");
+
+    match dir {
+        Ok(_) => (),
+        Err(_) => println!("dir config already exist"),
+    }
+
     let addr = "[::1]:50051".parse()?;
     let manager = Manager::default();
 
