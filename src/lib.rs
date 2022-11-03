@@ -19,88 +19,87 @@ impl ConfigClient {
         Ok(ConfigClient { client })
     }
 
-    pub async fn create_config(&mut self, service_name: &str, data: HashMap<String, String>) -> Result<Response<ResponseReply>, Status> {
+    pub async fn create_config(&mut self, service_name: &str, data: HashMap<String, String>) -> Result<ResponseReply, Status> {
         let request = Request::new(ConfigInformation {
             service: service_name.to_string(),
             data,
         });
 
-        let response = self.client.create(request).await?;
+        let response = self.client.create(request).await?.get_ref().clone();
 
         Ok(response)
     }
 
-    pub async fn get(&mut self, service_name: &str) -> Result<Response<ResponseGet>, Status> {
+    pub async fn get(&mut self, service_name: &str) -> Result<ResponseGet, Status> {
         let request = Request::new(RequestService {
             service: service_name.to_string(),
         });
 
-        let response = self.client.get(request).await?;
+        let response = self.client.get(request).await?.get_ref().clone();
 
         Ok(response)
     }
 
-    pub async fn get_version(&mut self, service_name: &str, version: u32) -> Result<Response<ResponseGet>, Status> {
+    pub async fn get_version(&mut self, service_name: &str, version: u32) -> Result<ResponseGet, Status> {
         let request = Request::new(RequestServiceVersion {
             service: service_name.to_string(),
             version,
         });
 
-        let response = self.client.get_version(request).await?;
+        let response = self.client.get_version(request).await?.get_ref().clone();
 
         Ok(response)
     }
 
-    pub async fn get_all(&mut self) -> Result<Response<ConfigList>, Status> {
+    pub async fn get_all(&mut self) -> Result<ConfigList, Status> {
         let request = Request::new(Empty {});
 
-        let response = self.client.get_all(request).await?;
+        let response = self.client.get_all(request).await?.get_ref().clone();
 
         Ok(response)
     }
 
-    pub async fn update(&mut self, service_name: &str, data: HashMap<String, String>) -> Result<Response<ResponseReply>, Status> {
+    pub async fn update(&mut self, service_name: &str, data: HashMap<String, String>) -> Result<ResponseReply, Status> {
         let request = Request::new(ConfigInformation {
             service: service_name.to_string(),
             data,
         });
 
-        let response = self.client.update(request).await?;
+        let response = self.client.update(request).await?.get_ref().clone();
 
         Ok(response)
     }
 
-    pub async fn delete(&mut self, service_name: &str) -> Result<Response<ResponseReply>, Status> {
+    pub async fn delete(&mut self, service_name: &str) -> Result<ResponseReply, Status> {
         let request = Request::new(RequestService {
             service: service_name.to_string(),
         });
 
-        let response = self.client.delete(request).await?;
+        let response = self.client.delete(request).await?.get_ref().clone();
 
         Ok(response)
     }
 
-    pub async fn delete_version(&mut self, service_name: &str, version: u32) -> Result<Response<ResponseReply>, Status> {
+    pub async fn delete_version(&mut self, service_name: &str, version: u32) -> Result<ResponseReply, Status> {
         let request = Request::new(RequestServiceVersion {
             service: service_name.to_string(),
             version
         });
 
-        let response = self.client.delete_version(request).await?;
+        let response = self.client.delete_version(request).await?.get_ref().clone();
 
         Ok(response)
     }
 
-    pub async fn use_config(&mut self, service_name: &str, version: u32) -> Result<Response<ResponseReply>, Status> {
+    pub async fn use_config(&mut self, service_name: &str, version: u32) -> Result<ResponseReply, Status> {
         let request = Request::new(RequestServiceVersion {
             service: service_name.to_string(),
             version
         });
 
-        let response = self.client.use_config(request).await?;
+        let response = self.client.use_config(request).await?.get_ref().clone();
 
         Ok(response)
     }
-
 
 }
