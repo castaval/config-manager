@@ -4,6 +4,7 @@ package configmanager;
 service ConfigManager {
     rpc Create(ConfigInformation) returns (ResponseReply) {}
     rpc Get(RequestService) returns (ResponseGet) {}
+    rpc GetVersion(RequestServiceVersion) returns (ResponseGet) {}
     rpc GetAll(Empty) returns (ConfigList) {}
     rpc Update(ConfigInformation) returns (ResponseReply) {}
     rpc Delete(RequestService) returns (ResponseReply) {}

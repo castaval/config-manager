@@ -1,8 +1,8 @@
 use std::error::Error;
 use tonic::{transport::Server, Request, Response, Status};
 
-use config_manager::config_manager_server::{ConfigManagerServer, ConfigManager};
-use config_manager::{Config, Empty, ConfigList, ResponseReply, ConfigInformation, RequestService, ResponseGet, RequestServiceVersion};
+use crate::config_manager::config_manager_server::{ConfigManagerServer, ConfigManager};
+use crate::config_manager::{Empty, ConfigList, ResponseReply, ConfigInformation, RequestService, ResponseGet, RequestServiceVersion};
 
 use file_manager::FileManager;
 
@@ -49,6 +49,22 @@ impl ConfigManager for Manager {
         println!("Got a get request {:?}", request);
 
         let config = match FileManager::get_config(&request.get_ref().service).await {
+            Ok(config) => config,
+            Err(e) => return Err(Status::not_found(format!("{}", e))),
+        };
+
+        let response = ResponseGet { data: config.data };
+
+        Ok(Response::new(response))
+    }
+
+    async fn get_version(
+        &self,
+        request: Request<RequestServiceVersion>,
+    ) -> Result<Response<ResponseGet>, Status> {
+        println!("Got a get version request {:?}", request);
+
+        let config = match FileManager::get_version(&request.get_ref().service, request.get_ref().version).await {
             Ok(config) => config,
             Err(e) => return Err(Status::not_found(format!("{}", e))),
         };

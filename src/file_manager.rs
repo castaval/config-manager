@@ -49,6 +49,38 @@ impl FileManager {
         Ok(config)
     }
 
+    pub async fn get_version(name: &str, version: u32) -> Result<Config, Box<dyn Error>> {
+        let dir_path = format!("configs/{}", name);
+        let mut config_path = PathBuf::new();
+        config_path.push(&dir_path);
+
+        if !config_path.exists() {
+            return Err(Box::new(Status::not_found("config not found")));
+        }
+
+        let mut config_version = None;
+
+        for config in fs::read_dir(dir_path)? {
+            let config = config?;
+
+            let file = File::open(config.path())?;
+            let reader = BufReader::new(file);
+
+            let json_config: Config = serde_json::from_reader(reader)?;
+
+            if json_config.version == version {
+                config_version = Some(json_config);
+            }
+        }
+
+        if let None = config_version {
+            return Err(Box::new(Status::not_found("config version not found")));
+        }
+
+        Ok(config_version.unwrap())
+
+    }
+
     pub async fn get_all_configs() -> Result<ConfigList, Box<dyn Error>> {
         let mut config_path = PathBuf::new();
         config_path.push("configs");

@@ -1,7 +1,7 @@
 use std::{error::Error, collections::HashMap};
 
 use config_manager::{config_manager_client::ConfigManagerClient, ConfigInformation, ResponseReply, RequestService, ResponseGet, Empty, ConfigList, RequestServiceVersion};
-use tonic::{Request, Response, Status, transport::Channel, codegen::http::response, service};
+use tonic::{Request, Response, Status, transport::Channel, codegen::http::{response, version}, service};
 
 pub mod config_manager {
     tonic::include_proto!("configmanager");
@@ -36,6 +36,17 @@ impl ConfigClient {
         });
 
         let response = self.client.get(request).await?;
+
+        Ok(response)
+    }
+
+    pub async fn get_version(&mut self, service_name: &str, version: u32) -> Result<Response<ResponseGet>, Status> {
+        let request = Request::new(RequestServiceVersion {
+            service: service_name.to_string(),
+            version,
+        });
+
+        let response = self.client.get_version(request).await?;
 
         Ok(response)
     }
