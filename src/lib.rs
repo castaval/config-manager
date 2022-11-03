@@ -1,7 +1,7 @@
 use std::{error::Error, collections::HashMap};
 
 use config_manager::{config_manager_client::ConfigManagerClient, ConfigInformation, ResponseReply, RequestService, ResponseGet, Empty, ConfigList, RequestServiceVersion};
-use tonic::{Request, Response, Status, transport::Channel, codegen::http::{response, version}, service};
+use tonic::{Request, Status, transport::Channel};
 
 pub mod config_manager {
     tonic::include_proto!("configmanager");
