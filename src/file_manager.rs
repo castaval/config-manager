@@ -202,6 +202,25 @@ impl FileManager {
 
             let config: Config = serde_json::from_reader(reader)?;
 
+            if config.used && config.version == version {
+                let config_not_used = Config {
+                    service: config.service,
+                    version: config.version,
+                    data: config.data,
+                    used: false,
+                };
+
+                fs::remove_file(conf.path())?;
+
+                let conf_path = conf.path();
+
+                let file = fs::File::create(&conf_path)?;
+                let mut writer = BufWriter::new(file);
+                serde_json::to_writer_pretty(&mut writer, &config_not_used)?;
+
+                return Ok(());
+            }
+
             if config.used {
                 let config_not_used = Config {
                     service: config.service,
