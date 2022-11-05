@@ -1,0 +1,18 @@
+version: '3'
+services:
+  rpcserver:
+    image: grpcserver-rust
+    ports:
+    - "3030:3030"
+    build:
+      context: .
+      dockerfile: Dockerfile-server
+  rpcclient:
+    image: grpcclient-rust
+    network_mode: host
+    build:
+      context: .
+      dockerfile: Dockerfile-client
+    depends_on:
+      - rpcserver
+

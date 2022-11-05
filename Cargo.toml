@@ -9,6 +9,10 @@ edition = "2021"
 name = "config-manager-server"
 path = "src/server.rs"
 
+[[bin]]
+name = "config-manager-client"
+path = "src/client.rs"
+
 [dependencies]
 serde_json = "1.0.1"
 serde = { version =  "1.0.147", features = ["derive"] }

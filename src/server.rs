@@ -175,7 +175,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         Err(_) => println!("dir config already exist"),
     }
 
-    let addr = "[::1]:50051".parse()?;
+    let addr = "0.0.0.0:3030".parse()?;
     let manager = Manager::default();
 
     Server::builder()

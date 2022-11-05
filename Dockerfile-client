@@ -1,0 +1,4 @@
+FROM ubuntu:latest
+WORKDIR /app
+ADD target/release/config-manager-client /app/config-manager-client
+CMD [ "./config-manager-client" ]
