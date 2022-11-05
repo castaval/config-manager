@@ -126,6 +126,8 @@ $ cargo run --bin config-manager-client
 ```
 ### Запуск в Docker
 ```
+$ cargo build --bin config-manager-server --release
+$ cargo build --bin config-manager-client --release
 $ docker compose build
 $ docker compose up -d
 ```
